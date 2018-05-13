@@ -19,24 +19,23 @@ class Group {
     setChildrens(child){
         this.childrens.push(child);
     }
-    setCount(add_user){
-        if(add_user)
-            this.user_count++;
-        else
-            this.user_count--;
-    }
-    updateCount(number){
-        this.user_count+= number;
-    }
 
-    updateUsersCount(root) {
-        if(root.getCount() > 0) {
-            return root.getCount();
+    updateCount(group, number){
+        if(group) {
+            group.user_count = group.user_count - number;
+            this.updateCount(group.parent, number);
         }
-        if (root.childrens[0] === undefined) return 0;
-
-        for (var i = 0; i < root.childrens.length; i++){
-            return root.childrens[i].getCount() + this.updateUsersCount(root.childrens[i]);
+    }
+    updateUsersCount_add(group){
+        if(group) {
+            group.user_count = group.user_count + 1;
+            this.updateUsersCount_add(group.parent)
+        }
+    }
+    updateUsersCount_delete(group){
+        if(group) {
+            group.user_count = group.user_count - 1;
+            this.updateUsersCount_delete(group.parent)
         }
     }
 
@@ -49,13 +48,6 @@ class Group {
         }
         return false;
     }
-
-    // add_Group(user){
-    //     // validate
-    //
-    //     // exec
-    //     this.users.add_user(user);
-    // }
 
     searchAndGetPath(root, name){
         var path = [];
@@ -107,14 +99,8 @@ class Group {
         path.push(element);
         return path;
     }
-
-
-
     addUser(user){
-        // validate
-
-        // exec
-        this.users.add_user(user);
+            this.users.add_user(user);
     }
     findUser(name){
         // var user = this.users.filter(user => user.name == name);
@@ -123,7 +109,6 @@ class Group {
     }
 
 }
-
 
 module.exports= Group;
 

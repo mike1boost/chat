@@ -4,7 +4,6 @@ const rl = require('readline').createInterface({
 });
 
 const Groups = require('./groups');
-// const Group = require('./group');
 const Users = require('./users');
 const User = require('./user');
 
@@ -142,14 +141,16 @@ function adduser2group() {
                 console.log("operation of adding user to group is canceled");
                 rootMain();
             }
-            var arGroups = groups.can_have_children(groups_SameName);
-            groups.printPath(arGroups);
-            rl.question('Type number to choose path: ', pathIndex => {
-                //// add user  /////
-                if(pathIndex < arGroups.length && pathIndex >= 0)
-                    groups.addUser(user, arGroups[pathIndex]);
-                rootMain();
-            });
+            else {
+                var arGroups = groups.can_have_children(groups_SameName);
+                groups.printPath(arGroups);
+                rl.question('Type number to choose path: ', pathIndex => {
+                    //// add user  /////
+                    if (pathIndex < arGroups.length && pathIndex >= 0)
+                        groups.addUser(user, arGroups[pathIndex]);
+                    rootMain();
+                });
+            }
         });
     });
 }
@@ -164,19 +165,21 @@ function delete_user_from_group() {
                 console.log("operation of delete user from group is canceled");
                 rootMain();
             }
-            var arGroups = groups.can_have_children(groups_SameName);
-            groups.printPath(arGroups);
-            console.log("  ");
-            rl.question('Type number to choose path: ', pathIndex => {
-                if(pathIndex < arGroups.length && pathIndex >= 0) {
-                    var group = arGroups[pathIndex];
-                    var users_ = group.getUsersClass();
-                    //// delete user from group  /////
-                    users_.remove_user(userName);
-                    group.setCount(false);
-                }
-                rootMain();
-            });
+            else {
+                var arGroups = groups.can_have_children(groups_SameName);
+                groups.printPath(arGroups);
+                console.log("  ");
+                rl.question('Type number to choose path: ', pathIndex => {
+                    if (pathIndex < arGroups.length && pathIndex >= 0) {
+                        var group = arGroups[pathIndex];
+                        var users_ = group.getUsersClass();
+                        //// delete user from group  /////
+                        users_.remove_user(userName);
+                        group.updateUsersCount_delete(group);
+                    }
+                    rootMain();
+                });
+            }
         });
     });
 }
@@ -196,17 +199,26 @@ function get_user2group() {
 }
 
 function flattingGroup() {
-    rl.question('Enter user name: ', userName => {
-        var groups = groups.findGroups(userName);
-        // if(user === group){
-        //     console.log("user not exist");
-        //     rootMain();
-        // }
-        // else {
-        //     groups.findGroups_userActive(userName);
-        groups.flatting(groups[0]);
-        rootMain();
-        // }
+    console.log(" ");
+    groups.print_groups_Users();
+    console.log(" ");
+    rl.question('Enter group name: ', groupName => {
+        var groups_ = groups.findGroups(groupName);
+        if(groups_.length === 0){
+            console.log("not exist");
+            rootMain();
+        }
+        else {
+            groups.printPath(groups_);
+            console.log("  ");
+            rl.question('Type number to choose path: ', pathIndex => {
+                if(pathIndex < groups_.length && pathIndex >= 0) {
+                    //// flat group  /////
+                    groups.flatting(groups_[pathIndex]);
+                }
+                rootMain();
+            });
+        }
     });
 }
 
@@ -258,8 +270,11 @@ function deleteGroup() {
             console.log("  ");
             rl.question('Type number to choose path: ', pathIndex => {
                 ////  delete group ////
-                if(pathIndex < groups_SameName.length && pathIndex >= 0)
+                if(pathIndex < groups_SameName.length && pathIndex >= 0) {
+                    console.log(groups_SameName[pathIndex].user_count);
+                    groups.rootGroup.updateCount(groups_SameName[pathIndex], groups_SameName[pathIndex].user_count);
                     groups.removeGroup(groups_SameName[pathIndex]);
+                }
                 rootMain();
             });
         }
@@ -289,10 +304,14 @@ function addUser() {
 function deleteUser() {
     rl.question('Enter user name(user to delete): ', name => {
         users.remove_user(name);
-        // groups.getGroups().forEach(function(group) {
-        //     group.getUsersClass().remove_user(name);
-        // });
-        rootMain();
+        var path = [];
+        groups.rootGroup.findInstances_By_user(groups.rootGroup, name, path);
+        for(var i = 0; i < path.length; i++) {
+            var users_ = path[i].getUsersClass();
+            users_.remove_user(name);
+            path[i].updateUsersCount_delete(path[i]);
+        }
+            rootMain();
     });
 }
 

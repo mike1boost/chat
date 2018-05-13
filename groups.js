@@ -1,5 +1,4 @@
 const Group = require('./group');
-const User = require('./user');
 
 class Groups {
     constructor(){
@@ -10,10 +9,12 @@ class Groups {
     addGroup(newGroup_name, fatherGroup){
         if (!this.unique_group(fatherGroup, newGroup_name))
             return false;
-        else {
+        else
+            if(fatherGroup.getUsersArray().length > 0){
+                return false;
+        }
             var child = new Group(newGroup_name, fatherGroup);
             fatherGroup.setChildrens(child);
-        }
         return true;
     }
 
@@ -23,12 +24,10 @@ class Groups {
         if(child_deleted){
             console.log("group deleted");
         }
-
     }
     searchGroupsAnd_print(name){
         this.rootGroup.searchAndGetPath(this.rootGroup, name);
     }
-
 
     findGroups(name){
         var path = [];
@@ -89,7 +88,7 @@ class Groups {
         }
         else {
             group.users.get_users().push(user_);
-            group.setCount(true);
+            group.updateUsersCount_add(group);
         }
     }
 
@@ -100,13 +99,13 @@ class Groups {
     }
 
     flatting(group){
-        if (group.parent.getChildrens() === 1 && group.parent){
-            if(group.getChildrens().length > 0){
+        if (group.parent.getChildrens().length === 1 && group.parent){
+            if(group.getUsersArray().length > 0){
                 var parent = group.parent;
-                for (var i = 0; i < group.getUsersClass().length; i++)
+                for (var i = 0; i < group.getUsersArray().length; i++)
                         this.addUser(group.getUsersArray()[i], parent);
+                this.removeGroup(group);
             }
-            this.removeGroup(group);
         }
     }
 
@@ -115,26 +114,16 @@ class Groups {
         this.rootGroup.childrens[0] = new Group('B', this.rootGroup);
         this.rootGroup.childrens[1] = new Group('C', this.rootGroup);
         this.rootGroup.childrens[2] = new Group('D', this.rootGroup);
-
-        // this.rootGroup.childrens[1].users.get_users().push(new User("nof", 72, 44));
-        // this.rootGroup.childrens[1].setCount(true);
-
         this.rootGroup.childrens[0].childrens[0] = new Group('E', this.rootGroup.childrens[0]);
         this.rootGroup.childrens[0].childrens[1] = new Group('F', this.rootGroup.childrens[0]);
         this.rootGroup.childrens[2].childrens[0] = new Group('G', this.rootGroup.childrens[2]);
         this.rootGroup.childrens[2].childrens[1] = new Group('H', this.rootGroup.childrens[2]);
         this.rootGroup.childrens[2].childrens[2] = new Group('I', this.rootGroup.childrens[2]);
         this.rootGroup.childrens[2].childrens[3] = new Group('J', this.rootGroup.childrens[2]);
-
         this.rootGroup.childrens[2].childrens[3].childrens[0] = new Group('Q', this.rootGroup.childrens[2].childrens[3]);
-        this.rootGroup.childrens[2].childrens[3].childrens[0].users.get_users().push(new User("bar", 72, 44));
-        this.rootGroup.childrens[2].childrens[3].childrens[0].setCount(true);
-        // this.rootGroup.childrens[2].childrens[3].childrens[0].users.get_users().push(new User("dan", 72, 44));
-        // this.rootGroup.childrens[2].childrens[3].childrens[0].setCount(true);
     }
 
     print_groups_Users() {
-        // this._root.updateUsersCount();
         this.printGroup(this.rootGroup, 0);
     }
 
@@ -157,7 +146,5 @@ class Groups {
 }
 
 module.exports= Groups;
-
-
 
 
